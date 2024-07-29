@@ -19,54 +19,17 @@ class AudioAvenger(AIInterface):
     def __init__(self):
         super().__init__()
         self.blind_flag = True
-        self.just_init = True
-        self.actions = (
-            "AIR_A",
-            "AIR_B",
-            "AIR_D_DB_BA",
-            "AIR_D_DB_BB",
-            "AIR_D_DF_FA",
-            "AIR_D_DF_FB",
-            "AIR_DA",
-            "AIR_DB",
-            "AIR_F_D_DFA",
-            "AIR_F_D_DFB",
-            "AIR_FA",
-            "AIR_FB",
-            "AIR_UA",
-            "AIR_UB",
-            "BACK_JUMP",
-            "BACK_STEP",
-            "CROUCH_A",
-            "CROUCH_B",
-            "CROUCH_FA",
-            "CROUCH_FB",
-            "CROUCH_GUARD",
-            "DASH",
-            "FOR_JUMP",
-            "FORWARD_WALK",
-            "JUMP",
-            "NEUTRAL",
-            "STAND_A",
-            "STAND_B",
-            "STAND_D_DB_BA",
-            "STAND_D_DB_BB",
-            "STAND_D_DF_FA",
-            "STAND_D_DF_FB",
-            "STAND_D_DF_FC",
-            "STAND_F_D_DFA",
-            "STAND_F_D_DFB",
-            "STAND_FA",
-            "STAND_FB",
-            "STAND_GUARD",
-            "THROW_A",
-            "THROW_B",
-        )
-        self.permitted_actions = (
-            "THROW_B",
-            "CROUCH_FB",
-            "AIR_F_D_DFB",
-        )
+
+        self.action_weights = {
+            "JUMP": 0.0625,
+            "FOR_JUMP": 0.0625,
+            "BACK_JUMP": 0.0625,
+            "STAND_GUARD": 0.0625,
+            "CROUCH_FB": 0.15,
+            "AIR_UB": 0.15,
+            "STAND_F_D_DFB": 0.3,
+            "AIR_D_DF_FB": 0.15,
+        }
 
     def name(self) -> str:
         return self.__class__.__name__
@@ -100,18 +63,21 @@ class AudioAvenger(AIInterface):
         if self.frame_data.empty_flag or self.frame_data.current_frame_number <= 0:
             return
 
-        if self.just_init:
-            self.just_init = False
-            action = "FORWARD_WALK"
+        if self.cc.get_skill_flag():
+            self.key = self.cc.get_skill_key()
         else:
-            action = np.random.choice(self.permitted_actions)
+            self.key.empty()
+            self.cc.skill_cancel()
 
-        self.cc.command_call(action)
-        self.inputKey = self.cc.get_skill_key()
+            action = np.random.choice(
+                list(self.action_weights.keys()),
+                p=list(self.action_weights.values()),
+            )
+
+            self.cc.command_call(action)
 
     def round_end(self, round_result: RoundResult):
         logger.info(f"round end: {round_result}")
-        just_init = False
 
     def game_end(self):
         logger.info("game end")
