@@ -1,0 +1,5 @@
+{
+	"words": ["pyftg", "aiinterface"],
+	"ignoreWords": ["venv"],
+	"ignorePaths": ["venv"]
+}
